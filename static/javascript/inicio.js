@@ -1,6 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
     let carrito = [];
 
+    // Función auxiliar para extraer el token CSRF de las cookies de Django
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     // 1. Lógica del Login
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -15,7 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('/api/usuarios/login/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // <-- Obligatorio para Django en POST
+                    },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await response.json();
@@ -51,8 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.productos && data.productos.length > 0) {
                         data.productos.forEach(p => {
                             const div = document.createElement('div');
-                            div.className = 'p-3 hover:bg-indigo-50 cursor-pointer flex justify-between border-b';
-                            div.innerHTML = `<span>${p.nombre}</span> <span class="font-bold text-indigo-600">$${p.precio}</span>`;
+                            div.className = 'p-3 hover:bg-slate-100 cursor-pointer flex justify-between border-b';
+                            div.innerHTML = `<span>${p.nombre}</span> <span class="font-bold text-slate-800">$${p.precio}</span>`;
                             div.onclick = () => agregarAlCarrito(p);
                             searchResults.appendChild(div);
                         });
@@ -71,7 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Manejo del Carrito
     window.agregarAlCarrito = function(producto) {
-        carrito.push({ ...producto, cantidad: 1 });
+        // Verificar si el producto ya está en el carrito para sumar cantidad en lugar de duplicarlo
+        const index = carrito.findIndex(item => item.id === producto.id);
+        if (index !== -1) {
+            carrito[index].cantidad += 1;
+        } else {
+            carrito.push({ ...producto, cantidad: 1 });
+        }
+
         if (searchInput) searchInput.value = '';
         if (searchResults) searchResults.classList.add('hidden');
         actualizarCarritoUI();
@@ -113,7 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const res = await fetch('/api/procesar-venta/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // <-- Obligatorio para Django en POST
+                    },
                     body: JSON.stringify({ items: carrito })
                 });
                 const data = await res.json();

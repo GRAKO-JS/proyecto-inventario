@@ -3,95 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Sistema POS</title>
-    <!-- Tailwind CSS por CDN para darle un diseño rápido y profesional -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Sistema POS - Inventario</title>
+    
+    <!-- Archivos estáticos de Django -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'fronten/base.css' %}">
 </head>
-<body class="bg-slate-100 flex items-center justify-center h-screen">
+<body>
 
-    <div class="bg-white p-8 rounded-xl shadow-md w-96">
-        <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">Iniciar Sesión</h2>
-
-        <!-- Formulario visual -->
-        <form id="loginForm" class="space-y-4">
-            <!-- Token de seguridad obligatorio de Django para peticiones POST -->
-            {% csrf_token %}
+    <!-- SECCIÓN 1: VISTA DE INICIO DE SESIÓN -->
+    <div id="login-view">
+        <div class="login-card">
+            <h2>Iniciar Sesión</h2>
             
-            <div>
-                <label class="block text-sm font-medium text-slate-700">Usuario</label>
-                <input type="text" id="username" required 
-                    class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
+            <!-- El atributo action redirige a la página de inicio/POS al enviar -->
+            <form id="login-form" action="/base/" method="GET">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700">Contraseña</label>
-                <input type="password" id="password" required 
-                    class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
 
-            <!-- Caja para mostrar errores o avisos -->
-            <div id="error-msg" class="hidden text-red-600 text-sm font-medium text-center bg-red-50 p-2 rounded"></div>
+                <div id="login-error" class="error-message" style="display: none;"></div>
 
-            <button type="submit" 
-                class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition font-medium">
-                Entrar al Sistema
-            </button>
-        </form>
+                <button type="submit" class="btn-primary">
+                    Entrar
+                </button>
+            </form>
+        </div>
     </div>
 
-    <!-- Script en JavaScript para enviar los datos a la API de Django -->
-    <script>
-        // Función para extraer el token CSRF de las cookies de Django
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Evita que la página se recargue de forma tradicional
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('error-msg');
-            
-            errorDiv.classList.add('hidden'); // Ocultar errores previos
-
-            try {
-                // Petición asíncrona (Fetch) hacia la vista de Django
-                const response = await fetch('/api/usuarios/login/', { // Reemplaza con la URL real de tu ruta
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken') // Seguridad requerida por Django
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Si el login es exitoso, redirige al usuario a la pantalla del POS
-                    window.location.href = '/ventas/'; // Reemplaza con tu ruta del POS
-                } else {
-                    // Si hay un error, muestra el mensaje en pantalla
-                    errorDiv.textContent = data.error;
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (error) {
-                errorDiv.textContent = 'Ocurrió un error de conexión con el servidor.';
-                errorDiv.classList.remove('hidden');
-            }
-        });
-    </script>
+    <!-- Enlace a tu archivo JavaScript independiente -->
+    <script src="{% static 'javascript/base.js' %}"></script>
 </body>
 </html>

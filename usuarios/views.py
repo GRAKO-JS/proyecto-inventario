@@ -2,7 +2,10 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
+@csrf_exempt
 def iniciar_sesion_api(request):
     """Recibe las credenciales, verifica que existan y abre la sesión del usuario"""
     if request.method == 'POST':
