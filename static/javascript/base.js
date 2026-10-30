@@ -70,10 +70,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 // Si la autenticación en la base de datos es exitosa (200 OK y success: true)
-                if (response.ok && data.success) {
-                    // Redirige automáticamente al navegador hacia la vista del POS (inicio.html)
-                    window.location.href = '/inicio/'; 
-                } else {
+                // Si la autenticación en la base de datos es exitosa (200 OK y success: true)
+if (response.ok && data.success) {
+    // Redirige dinámicamente a la URL que decidió el backend según el rol
+    window.location.href = data.redirect_url; 
+} else {
                     // Si las credenciales fallan, muestra el mensaje de error correspondiente
                     if (loginError) {
                         loginError.textContent = data.error || "Usuario o contraseña incorrectos";
@@ -110,5 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', () => {
             if (loginForm) loginForm.reset();
         });
+    }
+});
+// Prevenir la memoria caché del navegador (BFCache) al cerrar sesión
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
     }
 });

@@ -1,162 +1,154 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let carrito = [];
+    // Referencias a elementos del DOM
+    const modal = document.getElementById('modal-cajero');
+    const form = document.getElementById('form-cajero');
+    const errorDiv = document.getElementById('mensaje-error');
+    const tablaCajeros = document.getElementById('cajeros-tabla');
+    
+    const btnAbrirModal = document.getElementById('btn-abrir-modal');
+    const btnCerrarModal = document.getElementById('btn-cerrar-modal');
+    const btnCancelarModal = document.getElementById('btn-cancelar-modal');
 
-    // Función auxiliar para extraer el token CSRF de las cookies de Django
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+    // Funciones del Modal
+    function abrirModal() {
+        modal.classList.remove('hidden');
     }
 
-    // 1. Lógica del Login
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async function(e) {
+    function cerrarModal() {
+        modal.classList.add('hidden');
+        form.reset();
+        errorDiv.classList.add('hidden');
+    }
+
+    if (btnAbrirModal) btnAbrirModal.addEventListener('click', abrirModal);
+    if (btnCerrarModal) btnCerrarModal.addEventListener('click', cerrarModal);
+    if (btnCancelarModal) btnCancelarModal.addEventListener('click', cerrarModal);
+
+    // 1. CARGAR CAJEROS AL INICIAR LA PÁGINA
+    async function cargarCajeros() {
+        try {
+            const response = await fetch('/api/cajeros/');
+            const data = await response.json();
+
+            if (data.success) {
+                tablaCajeros.innerHTML = ''; // Limpiar tabla
+                
+                if (data.cajeros.length === 0) {
+                    tablaCajeros.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-gray-500">No hay cajeros registrados.</td></tr>`;
+                    return;
+                }
+
+                data.cajeros.forEach(cajero => {
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = `
+                        <td class="font-bold">${cajero.username}</td>
+                        <td>${cajero.nombre || 'Sin nombre'}</td>
+                        <td><span class="badge badge-success">Activo</span></td>
+                        <td class="text-center">
+                            <button class="btn-icon-danger" onclick="eliminarCajero(${cajero.id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tablaCajeros.appendChild(fila);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar cajeros:', error);
+        }
+    }
+
+    // 2. CREAR NUEVO CAJERO
+    if (form) {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const nombre = document.getElementById('nombre').value;
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('login-error');
-            
-            errorDiv.classList.add('hidden');
 
             try {
-                const response = await fetch('/api/usuarios/login/', {
+                const response = await fetch('/api/crear-cajero/', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken') // <-- Obligatorio para Django en POST
-                    },
-                    body: JSON.stringify({ username, password })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, username, password })
                 });
+
                 const data = await response.json();
 
                 if (data.success) {
-                    document.getElementById('login-view').classList.add('hidden');
-                    document.getElementById('pos-view').classList.remove('hidden');
-                    document.getElementById('user-display').textContent = `Cajero: ${data.username}`;
+                    cerrarModal();
+                    cargarCajeros(); // Recargar la tabla dinámicamente
                 } else {
-                    errorDiv.textContent = data.error || 'Credenciales incorrectas';
+                    errorDiv.textContent = data.error;
                     errorDiv.classList.remove('hidden');
                 }
-            } catch (err) {
-                errorDiv.textContent = 'Error de conexión con el servidor';
+            } catch (error) {
+                errorDiv.textContent = 'Ocurrió un error en el servidor.';
                 errorDiv.classList.remove('hidden');
             }
         });
     }
 
-    // 2. Lógica de Búsqueda de Productos en el POS
-    const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
+    // Ejecutar carga inicial
+    cargarCajeros();
+});
 
-    if (searchInput) {
-        searchInput.addEventListener('input', async function(e) {
-            const query = e.target.value;
-            if (query.length > 1) {
-                try {
-                    const res = await fetch(`/api/buscar-producto/?q=${query}`);
-                    const data = await res.json();
-                    
-                    searchResults.innerHTML = '';
-                    if (data.productos && data.productos.length > 0) {
-                        data.productos.forEach(p => {
-                            const div = document.createElement('div');
-                            div.className = 'p-3 hover:bg-slate-100 cursor-pointer flex justify-between border-b';
-                            div.innerHTML = `<span>${p.nombre}</span> <span class="font-bold text-slate-800">$${p.precio}</span>`;
-                            div.onclick = () => agregarAlCarrito(p);
-                            searchResults.appendChild(div);
-                        });
-                        searchResults.classList.remove('hidden');
-                    } else {
-                        searchResults.classList.add('hidden');
-                    }
-                } catch (err) {
-                    console.error("Error al buscar", err);
-                }
-            } else {
-                searchResults.classList.add('hidden');
-            }
+// 3. ELIMINAR CAJERO (Global para que funcione desde el botón inline)
+async function eliminarCajero(id) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este cajero?')) return;
+
+    try {
+        const response = await fetch(`/api/eliminar-cajero/${id}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
         });
-    }
 
-    // 3. Manejo del Carrito
-    window.agregarAlCarrito = function(producto) {
-        // Verificar si el producto ya está en el carrito para sumar cantidad en lugar de duplicarlo
-        const index = carrito.findIndex(item => item.id === producto.id);
-        if (index !== -1) {
-            carrito[index].cantidad += 1;
+        const data = await response.json();
+
+        if (data.success) {
+            location.reload(); // Refresca para actualizar la lista
         } else {
-            carrito.push({ ...producto, cantidad: 1 });
+            alert(data.error || 'No se pudo eliminar el cajero.');
         }
-
-        if (searchInput) searchInput.value = '';
-        if (searchResults) searchResults.classList.add('hidden');
-        actualizarCarritoUI();
-    };
-
-    function actualizarCarritoUI() {
-        const cartContainer = document.getElementById('cart-items');
-        if (!cartContainer) return;
-
-        if (carrito.length === 0) {
-            cartContainer.innerHTML = '<p class="text-slate-400 text-sm text-center mt-10">No hay productos en el carrito</p>';
-            return;
-        }
-
-        cartContainer.innerHTML = '';
-        carrito.forEach((item) => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'flex justify-between items-center border-b pb-2';
-            itemDiv.innerHTML = `
-                <div>
-                    <p class="font-medium text-slate-800">${item.nombre}</p>
-                    <p class="text-xs text-slate-500">$${item.precio} x ${item.cantidad}</p>
-                </div>
-                <span class="font-bold text-slate-700">$${item.precio * item.cantidad}</span>
-            `;
-            cartContainer.appendChild(itemDiv);
-        });
+    } catch (error) {
+        alert('Error de conexión con el servidor.');
     }
+}
+// Verificar la sesión con el servidor al volver a la pestaña o usar "Atrás"
+window.addEventListener('pageshow', function(event) {
+    chequearEstadoSesion();
+});
 
-    // 4. Procesar Venta
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', async function() {
-            if (carrito.length === 0) {
-                alert('El carrito está vacío');
-                return;
-            }
+window.addEventListener('focus', function(event) {
+    chequearEstadoSesion();
+});
 
-            try {
-                const res = await fetch('/api/procesar-venta/', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken') // <-- Obligatorio para Django en POST
-                    },
-                    body: JSON.stringify({ items: carrito })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    alert('¡Venta procesada con éxito!');
-                    carrito = [];
-                    actualizarCarritoUI();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (err) {
-                alert('Error de red al procesar la venta');
-            }
-        });
+function chequearEstadoSesion() {
+    // Hacemos una petición silenciosa a la propia página actual
+    fetch(window.location.href, { 
+        method: 'GET', 
+        cache: 'no-store',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => {
+        // Si Django detecta que no hay sesión, normalmente redirige al login 
+        // o la URL de respuesta cambia/contiene el login. 
+        // También podemos validar si la respuesta dio un código de acceso denegado.
+        if (response.redirected || response.url.includes('login') || response.status === 401 || response.status === 403) {
+            window.location.href = '/'; // Redirige a la pantalla de login o raíz
+        }
+    })
+    .catch(() => {
+        // Si falla la red, por seguridad recargamos la página
+        window.location.reload();
+    });
+}
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        // Oculta la pantalla al instante para que no se vea el parpadeo
+        document.body.style.display = 'none';
+        // Fuerza la recarga inmediata para que el servidor actúe
+        window.location.reload();
     }
 });

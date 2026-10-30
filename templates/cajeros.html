@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema POS - Caja</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'fronten/base.css' %}">
+</head>
+<body>
+
+    <!-- VISTA PRINCIPAL DEL CAJERO -->
+    <div id="pos-view" class="pos-container">
+        
+        <!-- BARRA SUPERIOR / HEADER DE CONTROL -->
+        <header class="pos-header">
+            <div class="header-brand">
+                <h1>⚡ POS - Terminal de Caja</h1>
+            </div>
+            <div class="header-user-info">
+                <span id="logged-user" class="badge-cajero">Cajero: Operador 1</span>
+                <button id="btn-cash-drawer" class="btn-warning-subtle" title="Abrir Caja Registradora">Abrir Caja 💵</button>
+                <button id="btn-sales-history" class="btn-secondary-subtle" title="Ver Ventas del Día">Historial 📊</button>
+            </div>
+        </header>
+
+        <!-- ESPACIO DE TRABAJO (Grid de 2 Columnas) -->
+        <div class="pos-workspace">
+            
+            <!-- COLUMNA IZQUIERDA: Búsqueda, Categorías y Catálogo -->
+            <section class="pos-catalog-section">
+                <!-- Barra de búsqueda rápida por pistola o teclado -->
+                <div class="search-bar-container">
+                    <input type="text" id="product-search" placeholder="🔍 Escanear código de barras o buscar producto (F2)..." autocomplete="off" autofocus>
+                </div>
+                
+                <!-- Botones de Categorías -->
+                <div class="pos-categories">
+                    <button class="cat-btn active" data-category="all">Todos</button>
+                    <button class="cat-btn" data-category="bebidas">Bebidas</button>
+                    <button class="cat-btn" data-category="snacks">Snacks</button>
+                    <button class="cat-btn" data-category="limpieza">Limpieza</button>
+                    <button class="cat-btn" data-category="abarrotes">Abarrotes</button>
+                </div>
+
+                <!-- Grid de Productos / Botones Táctiles -->
+                <div id="product-grid" class="product-grid">
+                    <!-- Ejemplo de tarjeta de producto -->
+                    <div class="product-card" data-id="1">
+                        <span class="p-name">Coca Cola 600ml</span>
+                        <span class="p-price">$2.50</span>
+                    </div>
+                    <div class="product-card" data-id="2">
+                        <span class="p-name">Agua Purificada 1L</span>
+                        <span class="p-price">$1.00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMNA DERECHA: Ticket / Carrito y Botones de Cobro -->
+            <section class="pos-ticket-section">
+                <div class="ticket-header">
+                    <h3>Ticket Actual #<span id="ticket-id">1024</span></h3>
+                    <button id="btn-suspend-ticket" class="btn-outline-sm" title="Guardar venta en espera">Pausar ⏸️</button>
+                </div>
+
+                <!-- Lista de artículos en el ticket -->
+                <div class="ticket-items-container">
+                    <table class="ticket-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Cant</th>
+                                <th>Subtotal</th>
+                                <th><span class="sr-only">Borrar</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-items-list">
+                            <!-- Los productos seleccionados se cargan dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Resumen Financiero -->
+                <div class="ticket-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="cart-subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Descuentos / Promos:</span>
+                        <span id="cart-discount">-$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Impuestos (IVA):</span>
+                        <span id="cart-tax">$0.00</span>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span>TOTAL A PAGAR:</span>
+                        <span id="cart-total">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN RÁPIDA (Todos los botones esenciales del cajero) -->
+                <div class="pos-actions-grid">
+                    <button id="btn-cancel-sale" class="btn-danger">Cancelar (Esc)</button>
+                    <button id="btn-apply-discount" class="btn-secondary">Descuento (%)</button>
+                    <button id="btn-change-qty" class="btn-secondary">Cantidad (F4)</button>
+                    <button id="btn-charge" class="btn-success-lg">COBRAR (F12)</button>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="{% static 'javascript/base.js' %}"></script>
+</body>
+</html>
