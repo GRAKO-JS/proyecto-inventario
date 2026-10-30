@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema POS - Panel Principal</title>
+    
+    <!-- Archivos estáticos de Django -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'fronten/base.css' %}">
+</head>
+<body>
+
+    <!-- CONTENEDOR PRINCIPAL DEL POS (SPA-style views) -->
+    <div id="pos-app-container">
+
+        <!-- Barra Superior / Header -->
+        <header class="pos-header">
+            <div class="header-brand">
+                <h1>Sistema POS</h1>
+            </div>
+            <nav class="header-nav">
+                <button class="nav-btn active" data-view="pos-view">POS</button>
+                <button class="nav-btn" data-view="inventory-view">Inventario</button>
+            </nav>
+            <div class="header-user">
+                <span id="logged-user">Cajero</span>
+                <button id="logout-btn" class="btn-secondary">Salir</button>
+            </div>
+        </header>
+
+        <!-- CONTENIDO PRINCIPAL / VISTAS -->
+        <main class="pos-main">
+
+            <!-- VISTA 1: MÓDULO DE VENTAS (POS) -->
+            <section id="pos-view" class="view-section active">
+                <div class="pos-grid">
+                    
+                    <!-- Panel Izquierdo: Productos y Búsqueda -->
+                    <div class="products-container">
+                        <div class="search-bar">
+                            <input type="text" id="product-search" placeholder="Buscar producto o escanear código...">
+                        </div>
+                        <div id="products-grid" class="products-grid">
+                            <!-- Los productos se cargan dinámicamente con JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Panel Derecho: Carrito de Compras / Ticket -->
+                    <div class="cart-container">
+                        <h2>Ticket de Venta</h2>
+                        <div id="cart-items" class="cart-items-list">
+                            <!-- Items añadidos al carrito -->
+                        </div>
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span id="cart-subtotal">$0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>IVA / Impuestos:</span>
+                                <span id="cart-tax">$0.00</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <span id="cart-total">$0.00</span>
+                            </div>
+                        </div>
+                        <div class="cart-actions">
+                            <button id="btn-cancel-sale" class="btn-danger">Cancelar</button>
+                            <button id="btn-process-sale" class="btn-primary">Cobrar</button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- VISTA 2: MÓDULO DE INVENTARIO -->
+            <section id="inventory-view" class="view-section" style="display: none;">
+                <div class="inventory-header">
+                    <h2>Gestión de Inventario</h2>
+                    <button id="btn-add-product" class="btn-primary">+ Nuevo Producto</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                            <!-- Filas de inventario cargadas vía JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Token CSRF oculto para solicitudes Fetch seguras en Django -->
+    {% csrf_token %}
+
+    <!-- Enlace al archivo JavaScript independiente -->
+    <script src="{% static 'javascript/base.js' %}"></script>
+</body>
+</html>

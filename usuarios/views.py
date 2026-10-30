@@ -1,29 +1,31 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect  # <--- Agregamos 'redirect' aquí
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 
+def vista_login(request): 
+    # Si el usuario ya tiene sesión iniciada, lo mandamos directo al POS
+    if request.user.is_authenticated:
+        return redirect('/base/')  
+
+    return render(request, 'inicio.html')
+    
 @csrf_exempt
 def iniciar_sesion_api(request):
     """Recibe las credenciales, verifica que existan y abre la sesión del usuario"""
     if request.method == 'POST':
         try:
-            # Leer los datos que envían desde el frontend (como React o un formulario)
             data = json.loads(request.body)
             username = data.get('username')
             password = data.get('password')
 
-            # Validar que los campos no vayan vacíos
             if not username or not password:
                 return JsonResponse({'success': False, 'error': 'Ingresa tu usuario y contraseña'}, status=400)
 
-            # authenticate() verifica en la base de datos si el usuario y la contraseña coinciden
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                # login() abre la sesión activa para este usuario en el sistema
                 login(request, user)
                 return JsonResponse({
                     'success': True,
@@ -31,7 +33,6 @@ def iniciar_sesion_api(request):
                     'username': user.username
                 })
             else:
-                # Si las credenciales son incorrectas
                 return JsonResponse({
                     'success': False, 
                     'error': 'Usuario o contraseña incorrectos'

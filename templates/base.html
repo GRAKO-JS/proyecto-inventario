@@ -16,8 +16,10 @@
         <div class="login-card">
             <h2>Iniciar Sesión</h2>
             
-            <!-- El atributo action redirige a la página de inicio/POS al enviar -->
-            <form id="login-form" action="/base/" method="GET">
+            <!-- Quitamos action y method para que el JavaScript (Fetch) tome el control -->
+            <form id="login-form">
+                {% csrf_token %}
+
                 <div class="form-group">
                     <label for="username">Usuario</label>
                     <input type="text" id="username" name="username" required>
@@ -25,10 +27,14 @@
 
                 <div class="form-group">
                     <label for="password">Contraseña</label>
-                    <input type="password" id="password" name="password" required>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" required>
+                        <button type="button" id="toggle-password" title="Mostrar contraseña">🕶️</button>
+                    </div>
                 </div>
 
-                <div id="login-error" class="error-message" style="display: none;"></div>
+                <!-- Contenedor simple para mostrar el error de credenciales con JavaScript -->
+                <div id="login-error" class="error-message" style="display: none; color: #ff4d4d; margin-top: 10px;"></div>
 
                 <button type="submit" class="btn-primary">
                     Entrar
@@ -37,7 +43,7 @@
         </div>
     </div>
 
-    <!-- Enlace a tu archivo JavaScript independiente -->
+    <!-- Archivo JavaScript independiente -->
     <script src="{% static 'javascript/base.js' %}"></script>
 </body>
 </html>

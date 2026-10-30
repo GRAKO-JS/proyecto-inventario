@@ -19,11 +19,13 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from django.urls import path
 from usuarios.views import iniciar_sesion_api
+from inventario.views import mostrar_inicio
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    # Cambiamos /base/ por /pos/ para enviar al usuario al Punto de Venta
-    path('', RedirectView.as_view(url='/base/', permanent=False)),
+path('admin/', admin.site.urls),
+    # Añadimos name='login' a la redirección o a la vista correspondiente
+    path('', RedirectView.as_view(url='/base/', permanent=False), name='login'),
     path('base/', include('ventas.urls')),
-  path('api/login/', iniciar_sesion_api, name='iniciar_sesion_api'),
+    path('api/login/', iniciar_sesion_api, name='iniciar_sesion_api'),
+    path('inicio/', mostrar_inicio, name='inicio')
 ]
