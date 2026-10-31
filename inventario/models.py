@@ -1,4 +1,5 @@
 from django.db import models
+from django.http import JsonResponse
 
 class Tienda(models.Model):
     nombre = models.CharField(max_length=100)
@@ -25,8 +26,4 @@ class InventarioTienda(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} en {self.tienda.nombre}: {self.stock} unidades"
-    
-def api_buscar_productos(request):
-    # Aquí usas el modelo Producto de models.py
-    productos = Producto.objects.filter(stock__gt=0).values('id', 'nombre', 'precio', 'stock')
-    return JsonResponse({'success': True, 'productos': list(productos)})
+

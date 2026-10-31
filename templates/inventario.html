@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema POS - Gestión de Inventario</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'fronten/inventario.css' %}">
+</head>
+<body>
+
+    <!-- VISTA PRINCIPAL DE INVENTARIO -->
+    <div id="inventory-view" class="pos-container">
+        
+        <!-- BARRA SUPERIOR / HEADER DE CONTROL -->
+        <header class="pos-header">
+            <div class="header-brand">
+                <h1>📦 POS - Gestión de Inventario</h1>
+            </div>
+            <div class="header-user-info">
+                <span id="logged-user" class="badge-cajero">Rol: Administrador</span>
+                <a href="#" class="btn-warning-subtle btn-link-pos">Ir a Caja ⚡</a>
+                <button id="btn-logout" class="btn-secondary-subtle" title="Cerrar Sesión">Salir 🚪</button>
+            </div>
+        </header>
+
+        <!-- ESPACIO DE TRABAJO GENERAL -->
+        <div class="inventory-workspace">
+            
+            <!-- TARJETAS DE ESTADÍSTICAS RÁPIDAS -->
+            <div class="inventory-stats">
+                <div class="stat-card stat-primary">
+                    <span class="stat-label">Total Productos</span>
+                    <h2 id="stat-total-products" class="stat-value">{{ total_productos }}</h2>
+                </div>
+                <div class="stat-card stat-danger">
+                    <span class="stat-label">Stock Bajo / Alertas</span>
+                    <h2 id="stat-low-stock" class="stat-value text-danger">{{ stock_bajo }}</h2>
+                </div>
+                <div class="stat-card stat-success">
+                    <span class="stat-label">Valor Total Inventario</span>
+                    <h2 id="stat-total-value" class="stat-value text-success">${{ valor_total }}</h2>
+                </div>
+            </div>
+
+            <!-- SECCIÓN DE ACCIONES Y BÚSQUEDA -->
+            <div class="inventory-actions-bar">
+                <div class="search-bar-container inventory-search-box">
+                    <input type="text" id="inventory-search" placeholder="🔍 Buscar por código, nombre o categoría..." autocomplete="off">
+                </div>
+                <div class="inventory-action-buttons">
+                    <button id="btn-filter-category" class="btn-secondary">Filtrar 🏷️</button>
+                    <button id="btn-add-product" class="btn-success-lg btn-add-override">+ Nuevo Producto</button>
+                </div>
+            </div>
+
+            <!-- TABLA DE INVENTARIO -->
+            <div class="inventory-table-container">
+                <table class="ticket-table inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Tienda / Sucursal</th>
+                            <th>Precio Venta</th>
+                            <th>Stock Actual</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body">
+                        {% for item in inventario_items %}
+                        <tr>
+                            <td class="font-code">{{ item.producto.codigo }}</td>
+                            <td>{{ item.producto.nombre }}</td>
+                            <td>{{ item.tienda.nombre }}</td>
+                            <td class="text-success font-bold">${{ item.producto.precio }}</td>
+                            <td class="{% if item.stock <= 5 %}text-danger{% endif %} font-bold">{{ item.stock }}</td>
+                            <td>
+                                {% if item.stock > 5 %}
+                                    <span class="badge-status badge-optimum">Óptimo</span>
+                                {% else %}
+                                    <span class="badge-status badge-low">Stock Bajo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <button class="btn-outline-sm" title="Editar producto">✏️</button>
+                                <!-- El data-id conecta directamente con el ID del registro en InventarioTienda -->
+                                <button class="btn-outline-sm btn-delete-action" data-id="{{ item.id }}" title="Eliminar producto">🗑️</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay productos registrados en el inventario.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="{% static 'javascript/inventario.js' %}"></script>
+</body>
+</html>

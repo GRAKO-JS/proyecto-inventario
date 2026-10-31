@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.urls import include, path
 from django.views.generic import RedirectView
+from inventario import views
 from usuarios.views import cerrar_sesion # Asegúrate de importarla
 # Importaciones de vistas limpias (sin duplicar)
 from usuarios.views import (
@@ -43,4 +44,5 @@ urlpatterns = [
     path('caja/', mostrar_caja, name='caja'),
     # Usamos nuestra función personalizada en lugar de LogoutView
     path('logout/', cerrar_sesion, name='logout'),
+    path('inventario/', views.inventario_view, name='inventario_view'),
 ]
